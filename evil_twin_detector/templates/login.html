@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}{% if setup_mode %}Initial Admin Setup{% else %}Login{% endif %} — EvilTwin Detector{% endblock %}
+{% block content %}
+<div class="container py-5" style="max-width: 440px;">
+  <div class="surface-card p-4">
+    <h1 class="h4 fw-bold text-info mb-1">EvilTwin Detector</h1>
+    <p class="small text-secondary mb-4">Wi-Fi Security Monitoring System</p>
+
+    {% if setup_mode %}
+      <h2 class="h6 fw-semibold mb-2">First-Run Administrator Setup</h2>
+      <p class="small text-secondary mb-3">Create the local administrator account to secure the monitoring dashboard.</p>
+      <form method="post" action="{{ url_for('auth.setup') }}">
+        <div class="mb-3">
+          <label class="form-label small">Administrator Username</label>
+          <input type="text" name="username" class="form-control" required minlength="3" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label small">Password (minimum 8 characters)</label>
+          <input type="password" name="password" class="form-control" required minlength="8" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label small">Confirm Password</label>
+          <input type="password" name="confirm_password" class="form-control" required minlength="8" />
+        </div>
+        <button type="submit" class="btn btn-info w-100 fw-semibold">Create Administrator Account</button>
+      </form>
+    {% else %}
+      <h2 class="h6 fw-semibold mb-3">Administrator Login</h2>
+      <form method="post" action="{{ url_for('auth.login') }}">
+        <div class="mb-3">
+          <label class="form-label small">Username</label>
+          <input type="text" name="username" class="form-control" required />
+        </div>
+        <div class="mb-3">
+          <label class="form-label small">Password</label>
+          <input type="password" name="password" class="form-control" required />
+        </div>
+        <button type="submit" class="btn btn-info w-100 fw-semibold">Sign In</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

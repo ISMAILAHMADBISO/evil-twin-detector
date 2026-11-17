@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Settings — EvilTwin Detector{% endblock %}
+{% block content %}
+<h1 class="h4 fw-bold mb-1">Settings</h1>
+<p class="small text-secondary mb-4">Configure scan intervals, alert preferences, Demo Mode isolation, and SQLite database backups.</p>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="surface-card p-4">
+      <h2 class="h6 fw-semibold mb-3">Scanner &amp; Notification Configuration</h2>
+      <form id="settings-form" class="d-flex flex-column gap-3">
+        <div>
+          <label class="form-label small">Automatic Scan Interval (seconds)</label>
+          <input type="number" min="5" max="3600" name="scan_interval_seconds" class="form-control" value="{{ settings.get('scan_interval_seconds', '30') }}" />
+        </div>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="autoScanSwitch" name="auto_scan_enabled" {% if settings.get('auto_scan_enabled') == 'true' %}checked{% endif %} />
+          <label class="form-check-label small" for="autoScanSwitch">Enable Automatic Scheduled Scanning</label>
+        </div>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="alertsSwitch" name="alerts_enabled" {% if settings.get('alerts_enabled', 'true') == 'true' %}checked{% endif %} />
+          <label class="form-check-label small" for="alertsSwitch">Generate Security Alerts on Suspicious Detections</label>
+        </div>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="demoSwitch" name="demo_mode" {% if settings.get('demo_mode') == 'true' %}checked{% endif %} />
+          <label class="form-check-label small text-warning" for="demoSwitch">Demo Mode (Uses isolated synthetic Wi-Fi dataset; never mixed with live scans)</label>
+        </div>
+        <button type="submit" class="btn btn-info fw-semibold align-self-start">Save Settings</button>
+      </form>
+      <div id="settings-msg" class="small mt-2"></div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="surface-card p-4 mb-3">
+      <h2 class="h6 fw-semibold mb-2">Host Scanner Environment</h2>
+      <div class="small text-secondary">Operating System: <span class="text-light">{{ host_platform }}</span></div>
+      <div class="small text-secondary">Scanner Backend: <span class="text-light">{% if host_platform == 'Windows' %}Windows netsh WLAN{% else %}Linux nmcli / Modular Adapter{% endif %}</span></div>
+    </div>
+
+    <div class="surface-card p-4">
+      <h2 class="h6 fw-semibold mb-3">Database Backup &amp; Restore</h2>
+      <a href="{{ url_for('settings.backup_database') }}" class="btn btn-outline-info btn-sm mb-3">Download SQLite Backup</a>
+      <form id="restore-form" enctype="multipart/form-data">
+        <input type="file" name="file" class="form-control form-control-sm mb-2" accept=".db" required />
+        <button type="submit" class="btn btn-outline-warning btn-sm">Restore Database Backup</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById("settings-form").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const form = e.target;
+  const payload = {
+    scan_interval_seconds: form.scan_interval_seconds.value,
+    auto_scan_enabled: form.auto_scan_enabled.checked ? "true" : "false",
+    alerts_enabled: form.alerts_enabled.checked ? "true" : "false",
+    demo_mode: form.demo_mode.checked ? "true" : "false",
+  };
+  const res = await fetch("/api/settings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const msg = document.getElementById("settings-msg");
+  msg.textContent = res.ok ? "Settings saved persistently." : "Error saving settings.";
+  msg.className = res.ok ? "small mt-2 text-success" : "small mt-2 text-danger";
+});
+
+document.getElementById("restore-form").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const res = await fetch("/api/settings/restore", { method: "POST", body: formData });
+  if (res.ok) window.location.reload();
+});
+</script>
+{% endblock %}

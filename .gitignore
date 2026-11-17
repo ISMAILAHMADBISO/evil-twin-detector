@@ -1,0 +1,14 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+*.db-wal
+*.db-shm
+evil_twin_detector/instance/.node_session_secret
+evil_twin_detector/instance/.secret_key
+__pycache__/
+*.pyc

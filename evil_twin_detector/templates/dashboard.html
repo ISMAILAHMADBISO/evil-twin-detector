@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — EvilTwin Detector{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h4 fw-bold mb-1">Security Operations Dashboard</h1>
+    <div class="small text-secondary">
+      Last Scan:
+      {% if data.scanner_status.last_scan %}
+        <span class="mono-tabular">{{ data.scanner_status.last_scan.started_at }}</span>
+      {% else %}
+        No scans executed yet
+      {% endif %}
+      {% if data.scanner_status.demo_mode %}
+        · <span class="text-warning fw-semibold">Demo Mode Active</span>
+      {% endif %}
+    </div>
+  </div>
+  <a href="{{ url_for('scanner.scanner_page') }}" class="btn btn-info fw-semibold">Open Live Scanner</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl">
+    <div class="surface-card p-3">
+      <div class="small text-secondary">Total Discovered</div>
+      <div class="fs-3 fw-bold mono-tabular">{{ data.summary.total_discovered }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-xl">
+    <div class="surface-card p-3">
+      <div class="small text-secondary">Authorised</div>
+      <div class="fs-3 fw-bold mono-tabular status-authorised">{{ data.summary.authorised }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-xl">
+    <div class="surface-card p-3">
+      <div class="small text-secondary">Suspicious</div>
+      <div class="fs-3 fw-bold mono-tabular status-suspicious">{{ data.summary.suspicious }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-xl">
+    <div class="surface-card p-3">
+      <div class="small text-secondary">Unknown</div>
+      <div class="fs-3 fw-bold mono-tabular status-unknown">{{ data.summary.unknown }}</div>
+    </div>
+  </div>
+  <div class="col-12 col-xl">
+    <div class="surface-card p-3">
+      <div class="small text-secondary">Total Alerts</div>
+      <div class="fs-3 fw-bold mono-tabular text-info">{{ data.summary.total_alerts }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-6">
+    <div class="surface-card p-3">
+      <h2 class="h6 fw-semibold mb-3">Network Classification Distribution</h2>
+      <canvas id="classificationChart" height="170"></canvas>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="surface-card p-3">
+      <h2 class="h6 fw-semibold mb-3">Network Discoveries Over Time</h2>
+      <canvas id="timelineChart" height="170"></canvas>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="surface-card p-3">
+      <h2 class="h6 fw-semibold mb-3">Security Alert Trends</h2>
+      <canvas id="alertTrendChart" height="170"></canvas>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="surface-card p-3">
+      <h2 class="h6 fw-semibold mb-3">Authorised vs Suspicious Comparison</h2>
+      <canvas id="comparisonChart" height="170"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="surface-card p-3">
+      <h2 class="h6 fw-semibold mb-3">Recent Network Discoveries</h2>
+      {% if data.recent_observations %}
+      <div class="table-responsive">
+        <table class="table table-dark-custom table-sm align-middle mb-0">
+          <thead>
+            <tr class="small text-secondary">
+              <th>SSID</th>
+              <th>BSSID</th>
+              <th>Security</th>
+              <th>Classification</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for obs in data.recent_observations %}
+            <tr>
+              <td>{{ obs.ssid }}</td>
+              <td class="mono-tabular small">{{ obs.bssid }}</td>
+              <td>{{ obs.security }}</td>
+              <td>
+                <span class="{% if obs.classification == 'AUTHORISED' %}status-authorised{% elif obs.classification == 'SUSPICIOUS' %}status-suspicious{% else %}status-unknown{% endif %}">
+                  {{ obs.classification }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="small text-secondary mb-0">No network discoveries recorded yet. Run a wireless scan to populate observations.</p>
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="surface-card p-3">
+      <h2 class="h6 fw-semibold mb-3">Recent Security Alerts</h2>
+      {% if data.recent_alerts %}
+      <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+        {% for alert in data.recent_alerts %}
+        <li class="border-bottom border-secondary border-opacity-25 pb-2">
+          <div class="small fw-semibold status-suspicious">{{ alert.title }}</div>
+          <div class="small text-secondary">{{ alert.severity }} · {{ alert.status }} · {{ alert.triggered_rule }}</div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="small text-secondary mb-0">No security alerts have been raised.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script id="dashboard-data-json" type="application/json">{{ data | tojson }}</script>
+{% endblock %}

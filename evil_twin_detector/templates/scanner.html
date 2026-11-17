@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Live Network Scanner — EvilTwin Detector{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h4 fw-bold mb-1">Live Network Scanner</h1>
+    <div class="small text-secondary">
+      Auto-refresh interval: <span class="mono-tabular">{{ scan_interval }}s</span>
+      {% if demo_mode %} · <span class="text-warning fw-semibold">Demo Mode (Isolated Synthetic Dataset)</span>{% endif %}
+    </div>
+  </div>
+  <button id="scan-now-btn" class="btn btn-info fw-semibold">Scan Now</button>
+</div>
+
+<div id="scanner-feedback" class="mb-3 small text-secondary">
+  {% if latest_session %}
+    Last scan status: {{ latest_session.status }} ({{ latest_session.networks_found }} networks) at <span class="mono-tabular">{{ latest_session.started_at }}</span>
+    {% if latest_session.error_message %} — <span class="text-danger">{{ latest_session.error_message }}</span>{% endif %}
+  {% else %}
+    Click "Scan Now" to inspect nearby wireless access points.
+  {% endif %}
+</div>
+
+<div class="surface-card p-3">
+  <div class="table-responsive">
+    <table class="table table-dark-custom align-middle mb-0">
+      <thead>
+        <tr class="small text-secondary">
+          <th>SSID</th>
+          <th>BSSID</th>
+          <th>Signal</th>
+          <th>Channel</th>
+          <th>Security</th>
+          <th>Classification</th>
+          <th>Detection Explanation</th>
+        </tr>
+      </thead>
+      <tbody id="scanner-results-body">
+        {% for obs in observations %}
+        <tr>
+          <td>{{ obs.ssid }}</td>
+          <td class="mono-tabular small">{{ obs.bssid }}</td>
+          <td class="mono-tabular small">{{ obs.signal_strength if obs.signal_strength is not none else 'N/A' }} dBm</td>
+          <td class="mono-tabular small">{{ obs.channel if obs.channel is not none else 'N/A' }}</td>
+          <td>{{ obs.security }}</td>
+          <td class="{% if obs.classification == 'AUTHORISED' %}status-authorised{% elif obs.classification == 'SUSPICIOUS' %}status-suspicious{% else %}status-unknown{% endif %}">
+            {{ obs.classification }}
+          </td>
+          <td class="small text-secondary">{{ obs.detection_reason }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center text-secondary py-4">No scan observations available yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

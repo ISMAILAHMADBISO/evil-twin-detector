@@ -1,0 +1,8 @@
+{
+  "name": "EvilTwin Detector",
+  "description": "Design and Implementation of a Rule-Based Client-Side Evil-Twin Wi-Fi Access Point Detection System",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

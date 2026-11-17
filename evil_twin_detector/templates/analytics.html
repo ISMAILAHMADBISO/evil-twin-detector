@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Performance Analytics — EvilTwin Detector{% endblock %}
+{% block content %}
+<h1 class="h4 fw-bold mb-1">Performance Evaluation &amp; Analytics</h1>
+<p class="small text-secondary mb-4">Evaluate the rule-based detection engine using labelled ground-truth test cases.</p>
+
+<div class="surface-card p-3 mb-4">
+  <h2 class="h6 fw-semibold mb-3">Add Labelled Evaluation Test Case</h2>
+  <form id="eval-form" class="row g-2">
+    <div class="col-md-2">
+      <input type="text" name="ssid" class="form-control form-control-sm" placeholder="SSID" required />
+    </div>
+    <div class="col-md-2">
+      <input type="text" name="bssid" class="form-control form-control-sm mono-tabular" placeholder="BSSID" required />
+    </div>
+    <div class="col-md-2">
+      <select name="observed_security" class="form-select form-select-sm">
+        <option value="WPA2">WPA2</option>
+        <option value="WPA3">WPA3</option>
+        <option value="WPA">WPA</option>
+        <option value="Open">Open</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select name="expected_classification" class="form-select form-select-sm">
+        <option value="Legitimate">Legitimate</option>
+        <option value="Unknown">Unknown</option>
+        <option value="Simulated Evil Twin">Simulated Evil Twin</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <input type="text" name="test_description" class="form-control form-control-sm" placeholder="Test Description" />
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-info btn-sm w-100 fw-semibold">Evaluate Case</button>
+    </div>
+  </form>
+  <div id="eval-msg" class="small mt-2"></div>
+</div>
+
+{% if not metrics.has_data %}
+<div class="surface-card p-4 mb-4">
+  <p class="mb-0 text-secondary">Evaluation data has not yet been entered. Add labelled test cases above to compute Precision, Detection Rate, False Positive Rate, and Detection Time.</p>
+</div>
+{% else %}
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="surface-card p-3">
+      <div class="small text-secondary">Precision</div>
+      <div class="fs-4 fw-bold mono-tabular">{{ "%.2f%%"|format(metrics.precision * 100) if metrics.precision is not none else "N/A" }}</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="surface-card p-3">
+      <div class="small text-secondary">Detection Rate (Recall)</div>
+      <div class="fs-4 fw-bold mono-tabular">{{ "%.2f%%"|format(metrics.detection_rate * 100) if metrics.detection_rate is not none else "N/A" }}</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="surface-card p-3">
+      <div class="small text-secondary">False Positive Rate</div>
+      <div class="fs-4 fw-bold mono-tabular">{{ "%.2f%%"|format(metrics.false_positive_rate * 100) if metrics.false_positive_rate is not none else "N/A" }}</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="surface-card p-3">
+      <div class="small text-secondary">Avg Detection Time</div>
+      <div class="fs-4 fw-bold mono-tabular">{{ "%.3f ms"|format(metrics.avg_detection_time_ms) }}</div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="surface-card p-3">
+  <h2 class="h6 fw-semibold mb-3">Evaluation Test Cases</h2>
+  <div class="table-responsive">
+    <table class="table table-dark-custom align-middle mb-0">
+      <thead>
+        <tr class="small text-secondary">
+          <th>SSID</th>
+          <th>BSSID</th>
+          <th>Security</th>
+          <th>Ground Truth</th>
+          <th>Engine Output</th>
+          <th>Time (ms)</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in cases %}
+        <tr>
+          <td>{{ c.ssid }}</td>
+          <td class="mono-tabular small">{{ c.bssid }}</td>
+          <td>{{ c.observed_security }}</td>
+          <td>{{ c.expected_classification }}</td>
+          <td>{{ c.actual_classification }}</td>
+          <td class="mono-tabular small">{{ "%.3f"|format(c.detection_time_ms) }}</td>
+          <td class="small text-secondary">{{ c.test_description }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-secondary py-4">No evaluation cases recorded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+document.getElementById("eval-form").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const payload = Object.fromEntries(new FormData(e.target).entries());
+  const res = await fetch("/api/evaluation/cases", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (res.ok) {
+    window.location.reload();
+  } else {
+    const data = await res.json();
+    document.getElementById("eval-msg").textContent = data.error || "Failed to add evaluation case.";
+  }
+});
+</script>
+{% endblock %}

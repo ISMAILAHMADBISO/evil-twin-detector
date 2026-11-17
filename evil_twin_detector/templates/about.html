@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}About Project — EvilTwin Detector{% endblock %}
+{% block content %}
+<h1 class="h4 fw-bold mb-1">About Project</h1>
+<p class="small text-secondary mb-4">Academic research and system specification for EvilTwin Detector.</p>
+
+<div class="surface-card p-4 mb-4">
+  <h2 class="h5 fw-bold text-info mb-3">Design and Implementation of a Rule-Based Client-Side Evil-Twin Wi-Fi Access Point Detection System</h2>
+  <div class="row g-3 small">
+    <div class="col-md-6"><strong>Application Name:</strong> EvilTwin Detector</div>
+    <div class="col-md-6"><strong>Institution:</strong> Capital City University, Kano</div>
+    <div class="col-md-6"><strong>Department:</strong> Computer Science</div>
+    <div class="col-md-6"><strong>Student Name:</strong> Zainab Bashir Mainasara</div>
+    <div class="col-md-6"><strong>Matriculation Number:</strong> U23CYS1014</div>
+    <div class="col-md-6"><strong>Project Supervisor:</strong> Mr. Munir Iro</div>
+  </div>
+</div>
+
+<div class="surface-card p-4">
+  <h2 class="h6 fw-semibold mb-2">Detection Methodology</h2>
+  <p class="small text-secondary mb-2">
+    EvilTwin Detector operates strictly defensively from the client side using the host computer's wireless adapter.
+    Discovered access points are evaluated against an administrator-curated SQLite baseline of approved access points across five transparent rules:
+  </p>
+  <ul class="small text-secondary mb-0">
+    <li><strong>Rule 1 (Authorised):</strong> Registered BSSID matching expected security configuration.</li>
+    <li><strong>Rule 2 (Suspicious):</strong> Same SSID as an approved network, but advertised by an unregistered BSSID.</li>
+    <li><strong>Rule 3 (Unknown):</strong> Unregistered access point that does not violate suspicious impersonation rules.</li>
+    <li><strong>Rule 4 (Suspicious):</strong> Registered BSSID observed with an unexpected security configuration.</li>
+    <li><strong>Rule 5 (Supporting Indicators):</strong> Signal strength (RSSI) and channel details displayed to support investigation without acting as sole proof.</li>
+  </ul>
+</div>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Approved Access Points — EvilTwin Detector{% endblock %}
+{% block content %}
+<h1 class="h4 fw-bold mb-1">Approved Access Points</h1>
+<p class="small text-secondary mb-4">Register legitimate BSSIDs, SSIDs, and expected security configurations for baseline comparison.</p>
+
+<div class="surface-card p-3 mb-4">
+  <h2 class="h6 fw-semibold mb-3">Register New Approved Access Point</h2>
+  <form id="add-ap-form" class="row g-2">
+    <div class="col-md-3">
+      <input type="text" name="ssid" class="form-control form-control-sm" placeholder="SSID (e.g., CCUK_Campus_WiFi)" required />
+    </div>
+    <div class="col-md-3">
+      <input type="text" name="bssid" class="form-control form-control-sm mono-tabular" placeholder="BSSID (AA:BB:CC:DD:EE:FF)" required />
+    </div>
+    <div class="col-md-2">
+      <select name="expected_security" class="form-select form-select-sm">
+        <option value="WPA2">WPA2</option>
+        <option value="WPA3">WPA3</option>
+        <option value="WPA">WPA</option>
+        <option value="Open">Open</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <input type="text" name="description" class="form-control form-control-sm" placeholder="Location / Note" />
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-info btn-sm w-100 fw-semibold">Add AP</button>
+    </div>
+  </form>
+  <div id="ap-form-msg" class="small mt-2"></div>
+</div>
+
+<div class="surface-card p-3">
+  <div class="table-responsive">
+    <table class="table table-dark-custom align-middle mb-0">
+      <thead>
+        <tr class="small text-secondary">
+          <th>SSID</th>
+          <th>BSSID</th>
+          <th>Expected Security</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th>Registered</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ap in access_points %}
+        <tr>
+          <td>{{ ap.ssid }}</td>
+          <td class="mono-tabular small">{{ ap.bssid }}</td>
+          <td>{{ ap.expected_security }}</td>
+          <td class="small text-secondary">{{ ap.description }}</td>
+          <td>{{ ap.status }}</td>
+          <td class="mono-tabular small">{{ ap.created_at }}</td>
+          <td>
+            <button class="btn btn-outline-danger btn-sm" onclick="deleteAp({{ ap.id }})">Delete</button>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-secondary py-4">No approved access points registered yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+document.getElementById("add-ap-form").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const payload = Object.fromEntries(new FormData(e.target).entries());
+  const msgEl = document.getElementById("ap-form-msg");
+  const res = await fetch("/api/access-points", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    msgEl.textContent = data.error || "Failed to save access point.";
+    msgEl.className = "small mt-2 text-danger";
+    return;
+  }
+  window.location.reload();
+});
+
+async function deleteAp(id) {
+  const res = await fetch("/api/access-points/" + id, { method: "DELETE" });
+  if (res.ok) window.location.reload();
+}
+</script>
+{% endblock %}
